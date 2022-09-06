@@ -97,6 +97,8 @@ jobs:
             cd frontend
             npm install
             npm audit fix --audit-level=critical --force
+      - notify-on-fail:
+          channel: vulnerability-audit-failures
 
   scan-backend:
     docker:
@@ -110,7 +112,8 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical --force
-
+      - notify-on-fail:
+          channel: vulnerability-audit-failures
   
 
 # Workflow definitions
