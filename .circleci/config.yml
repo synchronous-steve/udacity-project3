@@ -100,7 +100,7 @@ workflows:
   build_and_test:
     jobs:
       - build-frontend:
-          context::
+          context:
             - slack-vars
       - build-backend
       - test-frontend:
