@@ -71,7 +71,7 @@ jobs:
       - run:
           name: Audit Frontend code
           command: |
-            cd frontnd
+            cd frontend
             npm install
             npm audit fix --audit-level=critical --force
 
