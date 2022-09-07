@@ -18,14 +18,26 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      # Add parameter here   
+      run_when:
+        type: string
+        default: on_fail
     steps:
       - run:
-          name: Destroy environments
-          when: on_fail
+          name: Destroy backend on failure
+          when: << parameters.run_when >>
           command: |
-            # Your code here
-            exit 1
+            aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: Empty S3 bucket
+          when: << parameters.run_when >>
+          command: |
+            aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+      - run:
+          name: Destroy frontend on failure
+          when: << parameters.run_when >>
+          command: |
+            aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+      
 
 # Job definitions
 jobs:
@@ -103,7 +115,8 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # Restore from cache
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Audit Frontend code
           command: |
@@ -218,24 +231,37 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.11-rc-alpine
     steps:
       - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - attach_workspace:
+          at: ~/   
       - run:
-          name: Install dependencies
+          name: Install AWS CLI
           command: |
-            # your code here
+            apk add --update awscli
+      - run:
+          name: Install nodejs, npm, gzip and tar
+          command: |
+            apk add --update nodejs npm gzip tar
       - run:
           name: Get backend url
           command: |
-            # your code here
+            export BACKEND_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' .circleci/ansible/inventory.txt)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
       - run:
-          name: Deploy frontend objects
+          name: Deploy frontend objects   <<<<<<<<<<<<<<<<<<<<<<
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure      
+      # Here's where you will add some code to rollback on failure 
+
+      - destroy-environment:
+          run_when: on_fail    
     
   
 
@@ -271,3 +297,5 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
