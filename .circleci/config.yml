@@ -241,7 +241,7 @@ jobs:
       - run:
           name: Install AWS CLI
           command: |
-            apk add --update awscli
+            apk add --update aws-cli
       - run:
           name: Install nodejs, npm, gzip and tar
           command: |
