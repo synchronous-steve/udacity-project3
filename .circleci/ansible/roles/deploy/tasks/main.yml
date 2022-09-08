@@ -6,9 +6,8 @@
 
 - name: extract zipped backend content from local
   unarchive:
-    src:
+    src: ~/artifact.tar.gz
     dest: ~/backend_content
-
 
 - name: extract zipped backend content
   shell: |
