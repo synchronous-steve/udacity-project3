@@ -23,10 +23,6 @@ commands:
         default: on_fail
     steps:
       - run:
-          name: Install AWS CLI
-          command: |
-            apk add --update aws-cli
-      - run:
           name: Destroy backend on failure
           when: << parameters.run_when >>
           command: |
@@ -298,6 +294,10 @@ jobs:
             - "9f:65:8f:c7:ac:93:76:dc:cd:46:d9:f9:30:a1:5a:a0"
       - attach_workspace:
           at: ~/
+      - run:
+          name: Install AWS CLI
+          command: |
+            apk add --update aws-cli
       - run:
           name: Install Ansible
           command: |
