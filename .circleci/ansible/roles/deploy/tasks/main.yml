@@ -9,6 +9,10 @@
     ls /root/project
     ls ~/
     # backend/artifact.tar.gz
+  register: test_output
+
+- debug:
+    var = test_output
 
 # - name: start web server
 #   command: pm2 start ~/web/index.js -f
