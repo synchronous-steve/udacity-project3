@@ -40,7 +40,7 @@
 - debug:
     var: test_output3
 
-- name:
+- name: start udapeople backend app
   shell: |
     cd ~/backend_content
     npm install
