@@ -1,14 +1,14 @@
 ---
 - name: create web directory
   file:
-    path: ~/backend
+    path: ~/backend_content
     state: directory
 
 - name: extract zipped backend content
   shell: |
-    cd ~/backend  
-
+    cd ~/backend_content
+    ls ~/
     # backend/artifact.tar.gz
 
-- name: start web server
-  command: pm2 start ~/web/index.js -f
+# - name: start web server
+#   command: pm2 start ~/web/index.js -f
