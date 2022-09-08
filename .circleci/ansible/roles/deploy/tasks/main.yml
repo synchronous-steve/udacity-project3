@@ -6,7 +6,7 @@
 
 - name: extract zipped backend content
   shell: |
-    cd ~/backend_content
+    ls /root/project
     ls ~/
     # backend/artifact.tar.gz
 
