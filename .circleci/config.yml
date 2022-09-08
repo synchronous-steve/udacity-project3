@@ -180,7 +180,11 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure
+
+      - destroy-environment:
+          run_when: on_fail    
+      # to figure out miigration rollback step !?
+
 
   configure-infrastructure:
     docker:
@@ -202,7 +206,11 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-      # Here's where you will add some code to rollback on failure
+
+      - destroy-environment:
+          run_when: on_fail    
+      # to figure out migration rollback step !?
+
 
   run-migrations:
     docker:
@@ -227,7 +235,11 @@ jobs:
             then
               curl -k https://kvdb.io/W731k82q3QKRA74QoPjp86/migration_${CIRCLE_WORKFLOW_ID:0:7} -d 'success'
             fi
-     # Here's where you will add some code to rollback on failure
+
+      - destroy-environment:
+          run_when: on_fail    
+      # to figure out miigration rollback step !?
+    
 
   deploy-frontend:
     docker:
@@ -268,6 +280,48 @@ jobs:
       - destroy-environment:
           run_when: on_fail    
       # to figure out miigration rollback step !?
+
+
+  deploy-backend:
+    docker:
+      - image: python:3.11-rc-alpine
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - add_ssh_keys:
+          fingerprints:
+            - "9f:65:8f:c7:ac:93:76:dc:cd:46:d9:f9:30:a1:5a:a0"
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+            cat .circleci/ansible/inventory.txt
+      - run:
+          name: Install nodejs, npm, gzip and tar
+          command: |
+            apk add --update nodejs npm gzip tar
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            # Zip the directory
+            tar -C backend -czvf artifact.tar.gz .
+            echo "created tar of back end in: ${pwd}"
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+ #           ansible-playbook -i inventory.txt deploy-backend.yml
+
+      - destroy-environment:
+          run_when: on_fail    
+      # to figure out miigration rollback step !?  
+
     
   
 
@@ -304,4 +358,6 @@ workflows:
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
           requires: [run-migrations]
