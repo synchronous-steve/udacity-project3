@@ -17,16 +17,28 @@
 - debug:
     var: test_output1
 
+- name: create web directory
+  file:
+    path: ~/backend_content2
+    state: directory
+
 - name: extract zipped backend content
   shell: |
-    ls /
+    #ls /
     ls /tmp
-    #tar xvzf /tmp/artifact.tar.gz --directory ~/backend_content
-    # backend/artifact.tar.gz
+    tar xvzf /tmp/artifact.tar.gz --directory ~/backend_content2
   register: test_output
 
 - debug:
     var: test_output
 
-# - name: start web server
-#   command: pm2 start ~/web/index.js -f
+- name: list backend_output2
+  shell: |
+    ls ~/backend_content2
+  register: test_output3
+
+- debug:
+    var: test_output3
+
+#- name: start web server
+#  command: pm2 start ~/web/index.js -f

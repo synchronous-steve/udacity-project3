@@ -321,8 +321,8 @@ jobs:
             cd .circleci/ansible
             export TARGET_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' inventory.txt)
             ssh-keyscan ${TARGET_IP} >> ~/.ssh/known_hosts
-            ssh ubuntu@${TARGET_IP} "mkdir ~/tmp"
-            scp ~/artifact.tar.gz ubuntu@${TARGET_IP}:~/tmp
+            ssh ubuntu@${TARGET_IP} "mkdir /tmp"
+            scp ~/artifact.tar.gz ubuntu@${TARGET_IP}:/tmp
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
