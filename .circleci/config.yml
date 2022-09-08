@@ -302,7 +302,7 @@ jobs:
       - run:
           name: Install nodejs, npm, gzip and tar
           command: |
-            apk add --update nodejs npm gzip tar
+            apk add --update nodejs npm gzip tar openssh
       - run:
           name: Deploy backend
           command: |
@@ -315,6 +315,9 @@ jobs:
             echo "created tar of back end in:"
             pwd
             cd .circleci/ansible
+            export TARGET_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' .circleci/ansible/inventory.txt)
+            ssh ubuntu@${TARGET_IP} "mkdir ~/tmp"
+            scp artifact.tar.gz ubuntu@${TARGET_IP}:~/tmp
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
