@@ -268,6 +268,13 @@ jobs:
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
+          name: Send backend IP to kvdb.io
+          command: |
+            if [[ ! -z $API_URL ]]
+            then
+              curl -k https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7} -d ${API_URL}
+            fi
+      - run:
           name: Deploy frontend objects
           command: |
             cd frontend
@@ -330,6 +337,46 @@ jobs:
       - destroy-environment:
           run_when: on_fail    
       # to figure out miigration rollback step !?  
+
+  smoke-test:
+    docker:
+      - image: python:3.11-rc-alpine
+    steps:
+      - checkout
+      - run:
+          name: Install curl
+          command: |
+            apk add --update curl
+      - run:
+          name: retreive backend URL from kvdb.io
+          command: |
+              export $BACKEND_URL=$(curl -k 'https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}')
+      - run:
+          name: Backend smoke test
+          command: |
+              # Fetch and prepare the BACKEND_IP env var
+              #export API_URL="http://${BACKEND_URL}"
+              echo "${BACKEND_URL}"
+              if curl "${BACKEND_URL}/api/status" | grep "ok"
+              then
+                  return 0
+              else
+                  return 1
+              fi
+      - run:
+          name: Frontend smoke test.
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            echo ${URL} 
+            if curl -s ${URL} | grep "Welcome"
+            then
+                # Change this to 0 after the job fails
+              return 1
+            else
+              return 1
+            fi
+      # Here's where you will add some code to rollback on failure  
+
 
     
   

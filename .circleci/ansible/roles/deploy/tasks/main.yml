@@ -4,41 +4,23 @@
     path: ~/backend_content
     state: directory
 
-- name: extract zipped backend content from local
-  unarchive:
-    src: ~/artifact.tar.gz
-    dest: ~/backend_content
+# - name: extract zipped backend content from local
+#   unarchive:
+#     src: ~/artifact.tar.gz
+#     dest: ~/backend_content
 
-- name: list backend_content dir on host
-  shell: |
-    ls ~/backend_content
-  register: test_output1
-
-- debug:
-    var: test_output1
-
-- name: create web directory
-  file:
-    path: ~/backend_content2
-    state: directory
+# - name: create web directory2
+#   file:
+#     path: ~/backend_content2
+#     state: directory
 
 - name: extract zipped backend content
   shell: |
-    #ls /
-    ls /tmp
-    tar xvzf /tmp/artifact.tar.gz --directory ~/backend_content2
+    tar xvzf /tmp/artifact.tar.gz --directory ~/backend_content
   register: test_output
 
 - debug:
     var: test_output
-
-- name: list backend_output2
-  shell: |
-    ls ~/backend_content2
-  register: test_output3
-
-- debug:
-    var: test_output3
 
 - name: start udapeople backend app
   shell: |
