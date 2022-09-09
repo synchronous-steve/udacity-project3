@@ -343,7 +343,7 @@ jobs:
       - image: python:3.11-rc-alpine
     steps:
       - checkout
-            - run:
+      - run:
           name: Install AWS CLI
           command: |
             apk add --update aws-cli
