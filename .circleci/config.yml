@@ -362,7 +362,7 @@ jobs:
 
               echo ${CIRCLE_WORKFLOW_ID:0:7}
               echo "backend url is: ${BACKEND_URL}"
-              
+
               if curl "${BACKEND_URL}/api/status" | grep "ok"
               then
                   return 0
@@ -382,8 +382,8 @@ jobs:
               return 1
             fi
 
-      - destroy-environment:
-          run_when: on_fail  
+      # - destroy-environment:
+      #     run_when: on_fail  
 
 
     

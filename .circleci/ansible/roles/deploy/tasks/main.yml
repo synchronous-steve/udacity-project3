@@ -1,5 +1,6 @@
 ---
 - name: create web directory
+  # become: yes
   file:
     path: ~/backend_content
     state: directory
@@ -15,6 +16,7 @@
 #     state: directory
 
 - name: extract zipped backend content
+  # become: yes
   shell: |
     tar xvzf /tmp/artifact.tar.gz --directory ~/backend_content
   register: test_output
@@ -23,6 +25,7 @@
     var: test_output
 
 - name: start udapeople backend app
+  # become: yes
   shell: |
     cd ~/backend_content
     npm install
@@ -38,3 +41,12 @@
     TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE')}}"
     TYPEORM_MIGRATIONS: "{{ lookup('env', 'TYPEORM_MIGRATIONS')}}"
     TYPEORM_MIGRATIONS_DIR: "{{ lookup('env', 'TYPEORM_MIGRATIONS_DIR')}}"
+
+- name: check vars
+  shell: |
+    echo {$TYPEORM_CONNECTION $TYPEORM_ENTITIES $TYPEORM_HOST $TYPEORM_PORT $TYPEORM_USERNAME}
+  register: set_vars
+
+- debug: var=test_output
+
+

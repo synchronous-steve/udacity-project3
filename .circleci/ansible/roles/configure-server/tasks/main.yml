@@ -1,16 +1,16 @@
 ---
 - name: "update apt packages."
-  #become: yes
+  become: yes
   apt:
     update_cache: yes
 
 - name: "upgrade packages"
-  #become: yes
+  become: yes
   apt:
     upgrade: yes
 
 - name: install prerequisites
-  #become: yes
+  become: yes
   apt:
     name:
       - python3
@@ -19,7 +19,7 @@
     state: latest
 
 - name: install pm2
-  #become: yes
+  become: yes
   npm:
     name: pm2
     global: yes
