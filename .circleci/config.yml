@@ -260,18 +260,30 @@ jobs:
           command: |
             apk add --update nodejs npm gzip tar
       - run:
-          name: Get backend url
+          name: Get backend url and upload to kvdb
           command: |
             export BACKEND_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' .circleci/ansible/inventory.txt)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
+            echo 'export API_URL="${API_URL}"'
+            
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
+
+            if [ -z "${API_URL}" ]
+              then
+                echo "uploading $API_URL "
+                curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}" -d "${API_URL}"
+              else
+                echo "API_KEY check failed in if condition"
+                exit 1
+            fi
+
       - run:
           name: Send backend IP to kvdb.io
           command: |
-            echo "API url is: $API_URL"
-            if [[ ! -z ${API_URL} ]]
+            echo "API url is: ${API_URL}"
+            if [ -z "${API_URL}" ]
             then
               echo "uploading $API_URL "
               curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}" -d "${API_URL}"
@@ -358,7 +370,8 @@ jobs:
       - run:
           name: retreive backend URL from kvdb.io
           command: |
-              export BACKEND_URL=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}")
+              echo 'export BACKEND_URL=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}")' >> $BASH_ENV
+              #export BACKEND_URL=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}")
       - run:
           name: Backend smoke test
           command: |
