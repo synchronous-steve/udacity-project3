@@ -258,7 +258,7 @@ jobs:
       - run:
           name: Install nodejs, npm, gzip and tar
           command: |
-            apk add --update nodejs npm gzip tar
+            apk add --update nodejs npm gzip tar curl
       - run:
           name: Get backend url and upload to kvdb
           command: |
