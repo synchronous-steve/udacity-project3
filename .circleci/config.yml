@@ -265,11 +265,10 @@ jobs:
             export BACKEND_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' .circleci/ansible/inventory.txt)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            echo 'export API_URL="${API_URL}"' >> $BASH_ENV
-
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
 
+            #### Send BACKEND URL to kvdb
             if [[ ! -z "${API_URL}" ]]
               then
                 echo "uploading $API_URL "
@@ -277,18 +276,6 @@ jobs:
               else
                 echo "API_KEY check failed in if condition"
                 exit 1
-            fi
-
-      - run:
-          name: Send backend IP to kvdb.io
-          command: |
-            echo "API url is: ${API_URL}"
-            if [[ ! -z "${API_URL}" ]]
-            then
-              echo "uploading $API_URL "
-              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}" -d "${API_URL}"
-            else
-              echo "API_KEY check failed in if condition"
             fi
       - run:
           name: Deploy frontend objects
@@ -368,17 +355,14 @@ jobs:
           command: |
             apk add --update curl
       - run:
-          name: retreive backend URL from kvdb.io
-          command: |
-              echo 'export BACKEND_URL=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}")' >> $BASH_ENV
-              #export BACKEND_URL=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}")
-      - run:
           name: Backend smoke test
           command: |
               # Fetch and prepare the BACKEND_IP env var
-              #export API_URL="http://${BACKEND_URL}"
+              export BACKEND_URL=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}")
+
               echo ${CIRCLE_WORKFLOW_ID:0:7}
               echo "backend url is: ${BACKEND_URL}"
+              
               if curl "${BACKEND_URL}/api/status" | grep "ok"
               then
                   return 0
