@@ -272,7 +272,8 @@ jobs:
           command: |
             if [[ ! -z $API_URL ]]
             then
-              curl -k https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7} -d ${API_URL}
+              echo 
+              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}" -d "${API_URL}"
             fi
       - run:
           name: Deploy frontend objects
@@ -360,6 +361,7 @@ jobs:
           command: |
               # Fetch and prepare the BACKEND_IP env var
               #export API_URL="http://${BACKEND_URL}"
+              echo ${CIRCLE_WORKFLOW_ID:0:7}
               echo "${BACKEND_URL}"
               if curl "${BACKEND_URL}/api/status" | grep "ok"
               then
