@@ -444,15 +444,12 @@ jobs:
       steps:
         - checkout
         - run:
-            name: Get old stack workflow id
+            name: Cleanup previous deployment stacks
             command: |
               export OldWorkflowID=$(aws cloudformation \
                       list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
                       --no-paginate --output text)
-              echo 'export OldWorkflowID="${OldWorkflowID}"' >> "$BASH_ENV"
-
-              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/OldWorkFlowID_${CIRCLE_WORKFLOW_ID:0:7}" -d "${OldWorkflowID}"
-
+              echo 'export OldWorkflowID1="${OldWorkflowID}"' >> "$BASH_ENV"
 
               echo OldWorkflowID: "${OldWorkflowID}"
               echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
@@ -460,26 +457,11 @@ jobs:
               # Fetch the stack names          
               export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                       --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-              echo 'export STACKS="${STACKS[@]}"' >> "$BASH_ENV"
-
-              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/Stacks_${CIRCLE_WORKFLOW_ID:0:7}" -d "${STACKS}"
-
 
               echo Stack names: "${STACKS[@]}"
-        - run:
-            name: Remove old stacks and files
-            command: |
-              echo "$BASH_ENV"
-              cat $(echo "$BASH_ENV")
-              echo OldWorkflowID: "${OldWorkflowID}"
-              echo Stack names: "${STACKS[@]}"
 
-              export OldWorkflowID1=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/OldWorkFlowID_${CIRCLE_WORKFLOW_ID:0:7}")
-              export STACKS1=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/Stacks_${CIRCLE_WORKFLOW_ID:0:7}")
 
-              echo "$OldWorkflowID1"
-              echo "$STACKS1"
-
+              # Clear old deployments
 
               if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
               then
@@ -490,7 +472,16 @@ jobs:
                 aws cloudformation delete-stack \
                   --stack-name "udapeople-frontend-${OldWorkflowID}"
               fi
- 
+
+
+        - run:
+            name: Remove old stacks and files
+            command: |
+              echo "$BASH_ENV"
+              cat $(echo "$BASH_ENV")
+              echo "OldWorkflowID1: ${OldWorkflowID1}"
+
+
 
 # Workflow definitions
 workflows:
