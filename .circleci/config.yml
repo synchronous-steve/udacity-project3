@@ -37,7 +37,34 @@ commands:
           when: << parameters.run_when >>
           command: |
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
-      
+
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+      # parameters:
+      # workflow_id:
+      #     type: string     
+    parameters:
+      run_when:
+        type: string
+        default: on_fail
+
+    steps:
+      - run:
+          name: Revert migrations
+          command: |
+            # Fetch migration statud from KVDB
+            SUCCESS=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/migration_${CIRCLE_WORKFLOW_ID:0:7}")
+
+            # Logic for reverting the database state
+            if (( $SUCCESS == 'success' ));
+            then
+                cd ~/project/backend
+                npm install
+                npm run migration:revert
+            else
+              echo 'no migration rollback required'
+            fi
+          when: << parameters.run_when >>
 
 # Job definitions
 jobs:
@@ -211,7 +238,6 @@ jobs:
           run_when: on_fail    
       # to figure out migration rollback step !?
 
-
   run-migrations:
     docker:
       - image: circleci/node:13.8.0
@@ -231,11 +257,14 @@ jobs:
       - run:
           name: Send migration results to kvdb.io
           command: |
+            cat ~/project/backend/migrations_dump.txt
             if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
             then
-              curl -k https://kvdb.io/W731k82q3QKRA74QoPjp86/migration_${CIRCLE_WORKFLOW_ID:0:7} -d 'success'
+              echo "Migration successful. Upload status to KVDB"
+              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/migration_${CIRCLE_WORKFLOW_ID:0:7}" -d 'success'
+            else
+              echo "Migration did not take place"
             fi
-
       - destroy-environment:
           run_when: on_fail    
       # to figure out miigration rollback step !?
@@ -382,8 +411,11 @@ jobs:
               return 1
             fi
 
-      # - destroy-environment:
-      #     run_when: on_fail  
+      - destroy-environment:
+          run_when: on_fail
+
+      - revert-migrations:
+          run_when: on_fail 
 
 
     
