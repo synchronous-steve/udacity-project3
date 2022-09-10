@@ -108,7 +108,8 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # Restore from cache
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: run FrontEnd tests
           command: |
@@ -123,7 +124,8 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # Restore from cache
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: run BackEnd tests
           command: |
@@ -154,7 +156,8 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # Restore from cache
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Audit backend code
           command: |
@@ -415,7 +418,6 @@ jobs:
 
       - destroy-environment:
           run_when: on_fail
-
       - revert-migrations:
           run_when: on_fail
 
@@ -424,10 +426,6 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      # - run:
-      #     name: Install dependencies
-      #     command: |
-      #       # your code here
       - run:
           name: Store old workflowID for future reference
           command: |
@@ -446,7 +444,11 @@ jobs:
               --stack-name InitialStack \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
-      # Here's where you will add some code to rollback on failure
+      
+      - destroy-environment:
+          run_when: on_fail
+      - revert-migrations:
+          run_when: on_fail 
 
   cleanup:
       docker:
@@ -481,14 +483,6 @@ jobs:
                 aws cloudformation delete-stack \
                   --stack-name "udapeople-frontend-${OldWorkflowID}"
               fi
-
-        - run:
-            name: Remove old stacks and files
-            command: |
-              echo "$BASH_ENV"
-              cat $(echo "$BASH_ENV")
-              echo "OldWorkflowID1: ${OldWorkflowID1}"
-
 
 
 # Workflow definitions
