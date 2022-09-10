@@ -440,7 +440,7 @@ jobs:
 
   cleanup:
       docker:
-        - image: amazon/aws-cli
+        - image: amazon/aws-cli # cimg/base:current
       steps:
         - checkout
         - run:
@@ -462,7 +462,7 @@ jobs:
                       --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
               echo 'export STACKS="${STACKS[@]}"' >> "$BASH_ENV"
 
-              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/Stacks_${CIRCLE_WORKFLOW_ID:0:7}" -d "${STACKS[@]}"
+              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/Stacks_${CIRCLE_WORKFLOW_ID:0:7}" -d "${STACKS}"
 
 
               echo Stack names: "${STACKS[@]}"
