@@ -413,11 +413,11 @@ jobs:
               return 1
             fi
 
-      # - destroy-environment:
-      #     run_when: on_fail
+      - destroy-environment:
+          run_when: on_fail
 
-      # - revert-migrations:
-      #     run_when: on_fail
+      - revert-migrations:
+          run_when: on_fail
 
   cloudfront-update:
     docker:
