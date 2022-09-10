@@ -39,15 +39,11 @@ commands:
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
 
   revert-migrations:
-    description: Revert the last migration if successfully run in the current workflow.
-      # parameters:
-      # workflow_id:
-      #     type: string     
+    description: Revert the last migration if successfully run in the current workflow. 
     parameters:
       run_when:
         type: string
         default: on_fail
-
     steps:
       - run:
           name: Revert migrations
@@ -209,8 +205,9 @@ jobs:
             - project/.circleci/ansible/inventory.txt
 
       - destroy-environment:
-          run_when: on_fail    
-      # to figure out miigration rollback step !?
+          run_when: on_fail
+      - revert-migrations:
+          run_when: on_fail 
 
 
   configure-infrastructure:
@@ -235,8 +232,9 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
 
       - destroy-environment:
-          run_when: on_fail    
-      # to figure out migration rollback step !?
+          run_when: on_fail  
+      - revert-migrations:
+          run_when: on_fail 
 
   run-migrations:
     docker:
@@ -265,9 +263,11 @@ jobs:
             else
               echo "Migration did not take place"
             fi
+
       - destroy-environment:
           run_when: on_fail    
-      # to figure out miigration rollback step !?
+      - revert-migrations:
+          run_when: on_fail 
     
 
   deploy-frontend:
@@ -314,11 +314,11 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-      # Here's where you will add some code to rollback on failure 
 
       - destroy-environment:
-          run_when: on_fail    
-      # to figure out miigration rollback step !?
+          run_when: on_fail
+      - revert-migrations:
+          run_when: on_fail 
 
 
   deploy-backend:
@@ -367,8 +367,9 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
 
       - destroy-environment:
-          run_when: on_fail    
-      # to figure out miigration rollback step !?  
+          run_when: on_fail
+      - revert-migrations:
+          run_when: on_fail 
 
   smoke-test:
     docker:
@@ -415,7 +416,27 @@ jobs:
           run_when: on_fail
 
       - revert-migrations:
-          run_when: on_fail 
+          run_when: on_fail
+
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/cloudfront.yml \
+              --stack-name InitialStack \
+              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
+      # Here's where you will add some code to rollback on failure  
+
 
 
 # Workflow definitions
@@ -456,3 +477,5 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
