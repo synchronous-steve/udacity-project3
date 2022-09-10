@@ -451,6 +451,9 @@ jobs:
                       --no-paginate --output text)
               echo 'export OldWorkflowID="${OldWorkflowID}"' >> "$BASH_ENV"
 
+              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/OldWorkFlowID_${CIRCLE_WORKFLOW_ID:0:7}" -d "${OldWorkflowID}"
+
+
               echo OldWorkflowID: "${OldWorkflowID}"
               echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
 
@@ -459,14 +462,25 @@ jobs:
                       --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
               echo 'export STACKS="${STACKS[@]}"' >> "$BASH_ENV"
 
+              curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/Stacks_${CIRCLE_WORKFLOW_ID:0:7}" -d "${STACKS[@]}"
+
+
               echo Stack names: "${STACKS[@]}"
         - run:
             name: Remove old stacks and files
             command: |
               echo "$BASH_ENV"
+              cat $(echo "$BASH_ENV")
               echo OldWorkflowID: "${OldWorkflowID}"
               echo Stack names: "${STACKS[@]}"
-              
+
+              export OldWorkflowID1=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/OldWorkFlowID_${CIRCLE_WORKFLOW_ID:0:7}")
+              export STACKS1=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/Stacks_${CIRCLE_WORKFLOW_ID:0:7}")
+
+              echo "$OldWorkflowID1"
+              echo "$STACKS1"
+
+
               if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
               then
                 aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
