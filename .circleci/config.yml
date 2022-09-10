@@ -365,6 +365,7 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
+            sleep 30
 
       - destroy-environment:
           run_when: on_fail
@@ -436,7 +437,6 @@ jobs:
               --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
       # Here's where you will add some code to rollback on failure  
-
 
 
 # Workflow definitions
