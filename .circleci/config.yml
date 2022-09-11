@@ -349,6 +349,18 @@ jobs:
           name: Install nodejs, npm, gzip and tar
           command: |
             apk add --update nodejs npm gzip tar openssh
+      # - run:
+      #     name: set application vars
+      #     command: |
+      #       echo TYPEORM_CONNECTION=${TYPEORM_CONNECTION} >> backend/.env
+      #       echo TYPEORM_DATABASE=${TYPEORM_DATABASE} >> backend/.env
+      #       echo TYPEORM_ENTITIES=${TYPEORM_ENTITIES} >> backend/.env
+      #       echo TYPEORM_HOST=${TYPEORM_HOST} >> backend/.env
+      #       echo TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS} >> backend/.env
+      #       echo TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR} >> backend/.env
+      #       echo TYPEORM_PASSWORD=${TYPEORM_PASSWORD }>> backend/.env
+      #       echo TYPEORM_PORT=${TYPEORM_PORT} >> backend/.env
+      #       echo TYPEORM_USERNAME= ${TYPEORM_USERNAME} >> backend/.env
       - run:
           name: Deploy backend
           command: |
