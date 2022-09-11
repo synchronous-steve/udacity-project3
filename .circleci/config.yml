@@ -346,9 +346,9 @@ jobs:
             apk add --update ansible
             cat .circleci/ansible/inventory.txt
       - run:
-          name: Install nodejs, npm, gzip and tar
+          name: Install nodejs, npm, gzip, curl and tar
           command: |
-            apk add --update nodejs npm gzip tar openssh
+            apk add --update nodejs npm gzip tar openssh curl
       # - run:
       #     name: set application vars
       #     command: |
