@@ -314,6 +314,7 @@ jobs:
             echo NODE_ENV=production >> frontend/.env
 
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+
             cat frontend/.env
 
             #### Send BACKEND URL to kvdb
@@ -328,13 +329,15 @@ jobs:
       - run:
           name: Deploy frontend objects
           command: |
+            export API_URL=$(curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7})
             cd frontend
+            cat .env
             npm install
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws s3 cp .env s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
-            
+
       # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
