@@ -309,6 +309,10 @@ jobs:
             export BACKEND_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' .circleci/ansible/inventory.txt)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "Backend URL is:  ${API_URL}"
+
+            echo ENVIRONMENT=production > frontend/.env   
+            echo NODE_ENV=production >> frontend/.env
+
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
 
