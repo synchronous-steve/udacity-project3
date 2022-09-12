@@ -207,6 +207,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
 
+      # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
       - revert-migrations:
@@ -234,10 +235,12 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
 
+      # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail  
       - revert-migrations:
           run_when: on_fail 
+
 
   run-migrations:
     docker:
@@ -267,6 +270,7 @@ jobs:
               echo "Migration did not take place"
             fi
 
+      # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail    
       - revert-migrations:
@@ -286,7 +290,6 @@ jobs:
           name: Install AWS CLI
           command: |
             apk add --update aws-cli
-            # pip install awscli
       - run:
           name: Install nodejs, npm, gzip and tar
           command: |
@@ -303,7 +306,7 @@ jobs:
             #### Send BACKEND URL to kvdb
             if [[ ! -z "${API_URL}" ]]
               then
-                echo "uploading $API_URL "
+                echo "uploading $API_URL to kvdb"
                 curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/backend_api_url_${CIRCLE_WORKFLOW_ID:0:7}" -d "${API_URL}"
               else
                 echo "API_KEY check failed in if condition"
@@ -318,6 +321,7 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
+      # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
       - revert-migrations:
@@ -349,18 +353,6 @@ jobs:
           name: Install nodejs, npm, gzip, curl and tar
           command: |
             apk add --update nodejs npm gzip tar openssh curl
-      # - run:
-      #     name: set application vars
-      #     command: |
-      #       echo TYPEORM_CONNECTION=${TYPEORM_CONNECTION} >> backend/.env
-      #       echo TYPEORM_DATABASE=${TYPEORM_DATABASE} >> backend/.env
-      #       echo TYPEORM_ENTITIES=${TYPEORM_ENTITIES} >> backend/.env
-      #       echo TYPEORM_HOST=${TYPEORM_HOST} >> backend/.env
-      #       echo TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS} >> backend/.env
-      #       echo TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR} >> backend/.env
-      #       echo TYPEORM_PASSWORD=${TYPEORM_PASSWORD }>> backend/.env
-      #       echo TYPEORM_PORT=${TYPEORM_PORT} >> backend/.env
-      #       echo TYPEORM_USERNAME= ${TYPEORM_USERNAME} >> backend/.env
       - run:
           name: Deploy backend
           command: |
@@ -368,24 +360,33 @@ jobs:
             npm i
             npm run build
             cd ..
+
             # Zip the directory
             tar -C backend -czvf ~/artifact.tar.gz .
             echo "list tar file in home"
             ls ~/
             cd .circleci/ansible
+
+            # Fetch host IP add ssh key to knownhosts
             export TARGET_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' inventory.txt)
             ssh-keyscan ${TARGET_IP} >> ~/.ssh/known_hosts
-            #ssh ubuntu@${TARGET_IP} "mkdir /tmp"
+
             scp ~/artifact.tar.gz ubuntu@${TARGET_IP}:/tmp
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
-            ansible-playbook -i inventory.txt deploy-backend.yml
-            sleep 30
 
+            # start ansible playbook to deploy back end services
+            ansible-playbook -i inventory.txt deploy-backend.yml
+
+            #add wait for server to be fully ready
+            sleep 20
+
+      # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
       - revert-migrations:
           run_when: on_fail 
+
 
   smoke-test:
     docker:
@@ -427,11 +428,12 @@ jobs:
             else
               return 1
             fi
-
+      # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
       - revert-migrations:
           run_when: on_fail
+
 
   cloudfront-update:
     docker:
@@ -445,6 +447,8 @@ jobs:
               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text)
 
+            echo "Old Workflow ID: ${OldWorkflowID}"
+
             # Upload old workflowID to KVDB
             curl -k "https://kvdb.io/W731k82q3QKRA74QoPjp86/oldworkflowID" -d "${OldWorkflowID}"
 
@@ -456,15 +460,17 @@ jobs:
               --stack-name InitialStack \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
-      
+
+      # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
       - revert-migrations:
           run_when: on_fail 
 
+
   cleanup:
       docker:
-        - image: amazon/aws-cli # cimg/base:current
+        - image: amazon/aws-cli
       steps:
         - checkout
         - run:
