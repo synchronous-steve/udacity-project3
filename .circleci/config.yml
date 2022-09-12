@@ -169,13 +169,14 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: amazon/aws-cli # cimg/aws:2022.06
+      - image: amazon/aws-cli
     steps:
       - checkout
       - run: yum install -y tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
+            echo "Deploy BackEnd Infrastructure"
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -185,6 +186,7 @@ jobs:
       - run:
           name: Ensure front-end infrastructure exist
           command: |
+            echo "Deploy Frontend Infrastructure"
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -194,6 +196,7 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
+            echo "Save backend IP to inventory for anisble"
             touch ~/inventory
             echo [all] > ~/inventory
             aws ec2 describe-instances \
@@ -227,6 +230,7 @@ jobs:
       - run:
           name: Install Ansible
           command: |
+            echo "installing Ansible"
             apk add --update ansible
             cat .circleci/ansible/inventory.txt
       - run:
@@ -299,7 +303,7 @@ jobs:
           command: |
             export BACKEND_IP=$(grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' .circleci/ansible/inventory.txt)
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
+            echo "Backend URL is:  ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
 
@@ -428,6 +432,7 @@ jobs:
             else
               return 1
             fi
+            
       # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
