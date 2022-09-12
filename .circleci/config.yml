@@ -240,6 +240,11 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
 
       # Destroy infrastructure and revert migration on failure
+      - run:
+          name: Install AWS CLI
+          command: |
+            apk add --update aws-cli
+          when: on_fail
       - destroy-environment:
           run_when: on_fail  
       - revert-migrations:
@@ -383,7 +388,7 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
 
             #add wait for server to be fully ready
-            sleep 20
+            sleep 25
 
       # Destroy infrastructure and revert migration on failure
       - destroy-environment:
@@ -432,7 +437,7 @@ jobs:
             else
               return 1
             fi
-            
+
       # Destroy infrastructure and revert migration on failure
       - destroy-environment:
           run_when: on_fail
